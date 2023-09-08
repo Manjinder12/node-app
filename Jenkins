@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+    stages {
+       
+          stage('Get all') {
+            steps {
+               git branch: 'main', credentialsId: 'd826e8ff-db9f-44bd-94df-92f66ef3eea7', url: 'https://github.com/Manjinder12/node-app.git'
+            }
+        }
+        
+         stage('Build in Node App') {
+             steps {
+                sshagent(credentials:['ce75039e-fefc-4220-8ed1-d719339744bd']) {
+                 
+               sh """ssh -o StrictHostKeyChecking=no  ubuntu@3.7.31.203 << EOF
+               sudo su - root
+               cd node-app/node-app/
+               if sudo git pull origin main; then
+                    sudo pm2 restart 0
+                else
+                    echo "Error encountered during git pull. Skipping pm2 restart."
+                    exit 1
+                fi
+               exit
+               exit
+                
+              
+    EOF"""
+              }               
+           }
+        }
+    }
+post {
+        // failure {
+             //def console_output = "${env.BUILD_URL}/console"
+          //   mail bcc: '', body: "Details: ${env.JOB_NAME} Build Number: ${env.BUILD_NUMBER} Build: ${env.BUILD_URL} Console Output: ${env.BUILD_URL}/console", cc: '', from: 'manjinder.singh@insurancesamadhan.com', replyTo: '', subject: 'Failing UIVeri5 Tests', to: 'manjinder.singh@insurancesamadhan.com'
+        // }
+         unstable {
+             mail bcc: '', body: "Details: ${env.JOB_NAME} Build Number: ${env.BUILD_NUMBER} Build: ${env.BUILD_URL} Console Output: ${env.BUILD_URL}/console", cc: '', from: 'manjinder.singh@insurancesamadhan.com', replyTo: '', subject: 'Failing UIVeri5 Tests', to: 'manjinder.singh@insurancesamadhan.com'
+         }
+        // success {
+          //   mail bcc: '', body: "Details: ${env.JOB_NAME} Build Number: ${env.BUILD_NUMBER} Build: ${env.BUILD_URL} Console Output: ${env.BUILD_URL}/console", cc: '', from: 'manjinder.singh@insurancesamadhan.com', replyTo: '', subject: "SUCCESS: ${currentBuild.fullDisplayName}", to: 'manjinder.singh@insurancesamadhan.com'
+        //   }
+         success {
+             slackSend color: "good", message: "Successfully conf slack Build: ${env.BUILD_URL} Build Name: ${env.JOB_NAME} Build Number: ${env.BUILD_NUMBER}"
+           }
+         failure {
+             slackSend color: "danger", message: "Failed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
+           }
+        }
+}
