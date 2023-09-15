@@ -4,7 +4,7 @@ const port = 9095;
 
 app.get('/', (req, res) =>{
 console.log('Inside / route');	
-res.send('APP WORKING!!!')
+res.send('hello app is working fine')
 })
 
 app.listen(port, () => {
